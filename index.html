@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Familiar Stranger in a Dream Office</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@400;700&display=swap');
+        
+        :root {
+            --bg-color: #00008B; 
+            --window-bg: #C0C0C0; 
+            --window-border: outset 2px #fff;
+            --text-color: #000; 
+            --title-bar-bg: linear-gradient(to right, #000080, #1E90FF);
+            --title-bar-text-color: #fff;
+            --font-family: 'VT323', monospace; 
+            --button-bg: #C0C0C0;
+            --energy-bar-bg: #808080; 
+            --energy-bar-fill: #39FF14;
+            --font-size-normal: 1.2rem;
+            --font-size-large: 1.6rem;
+        }
+
+        body.dreamy-mode {
+            --bg-color: #F8C8DC;
+            --window-bg: #FFF0F5;
+            --window-border: outset 2px #FFFFFF;
+            --text-color: #6A5D7B;
+            --title-bar-bg: linear-gradient(to right, #E6A4B4, #F3D7CA);
+            --title-bar-text-color: #6A5D7B;
+            --font-family: 'Inter', sans-serif;
+            --button-bg: #F5E8DD;
+            --energy-bar-bg: #E6E6FA;
+            --energy-bar-fill: #98D8AA;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            font-family: var(--font-family); color: var(--text-color);
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; margin: 0; overflow: hidden;
+            font-size: var(--font-size-normal);
+            transition: background-color 0.5s, color 0.5s;
+        }
+        body.large-text { font-size: var(--font-size-large); }
+        body.high-contrast {
+            --bg-color: #000; --window-bg: #000; --text-color: #fff;
+            --window-border: outset 2px #fff; --button-bg: #333;
+            --title-bar-bg: #222; --energy-bar-bg: #555;
+            --title-bar-text-color: #fff;
+        }
+
+        .window {
+            width: 90vw; max-width: 700px; background: var(--window-bg);
+            border: var(--window-border); box-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+            display: flex; flex-direction: column;
+            max-height: 95vh;
+            transition: background-color 0.3s, border 0.3s;
+        }
+        .title-bar {
+            background: var(--title-bar-bg); color: var(--title-bar-text-color); padding: 5px 10px;
+            font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: default;
+            transition: background-color 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .title-bar-icons { display: flex; gap: 10px; align-items: center; }
+        .icon-btn { cursor: pointer; font-size: 1.5rem; color: white; user-select: none; }
+        body.dreamy-mode .icon-btn { color: #6A5D7B; }
+        body.high-contrast .icon-btn { color: white; }
+
+        .content {
+            padding: 20px;
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .game-content { min-height: 400px; }
+
+        #energy-label { font-size: 1em; margin-bottom: 5px; font-weight: bold; }
+        #energy-bar-outline { width: 100%; height: 25px; border: 2px solid var(--text-color); background: var(--energy-bar-bg); padding: 2px; }
+        #energy-bar-fill { height: 100%; background: var(--energy-bar-fill); transition: width 0.5s ease-in-out, background-color 0.5s; }
+
+        #scenario-image { font-size: 5rem; text-align: center; margin-bottom: 15px; animation: fadeIn 0.5s; }
+        #scenario-text { font-size: 1.25em; line-height: 1.6; text-align: center; margin-bottom: 20px; min-height: 80px; }
+        #options-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .option-btn {
+            font-family: var(--font-family); background: var(--button-bg);
+            border: var(--window-border); padding: 10px 15px; font-size: 1em; cursor: pointer;
+            transition: background-color 0.3s; color: var(--text-color);
+        }
+        .option-btn:active { border: inset 2px #fff; }
+
+        #start-screen { text-align: center; animation: zoomIn 0.5s; }
+        #start-screen h1 { font-size: 2.5em; margin-bottom: 10px;}
+        #start-screen p { font-size: 1.2em; margin-bottom: 30px; line-height: 1.5; }
+        .start-btn-container { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal .window { animation: zoomIn 0.3s; }
+        .modal-content { padding: 20px; font-size: 1.1em; line-height: 1.7; overflow-y: auto; }
+        .modal-content h2, .modal-content h3 { margin-top: 0; text-align: center; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding: 0 20px 20px; flex-shrink: 0; }
+        
+        #character-modal-content .dossier-category { margin-bottom: 20px; border-bottom: 1px solid var(--text-color); padding-bottom: 10px; }
+        #character-modal-content h3 { font-size: 1.3em; color: var(--title-bar-text-color); background-color: var(--title-bar-bg); padding: 5px; }
+        #character-modal-content strong { display: block; margin-top: 10px; }
+        #character-modal-content p { margin: 5px 0 0 10px; font-size: 0.9em; }
+
+        .hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" class="window">
+        <div class="title-bar"><span>Welcome</span></div>
+        <div class="content">
+            <h1>Choose Your Reality</h1>
+            <p>Select an experience to begin.</p>
+            <div class="start-btn-container">
+                <button id="start-dream-btn" class="option-btn" style="background-color: #E6A4B4; color: #6A5D7B;">Begin the Dream ✨ (Recommended)</button>
+                <button id="start-reality-btn" class="option-btn">Relive the Reality 🖥️</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-window" class="window hidden">
+        <div class="title-bar">
+            <span id="game-title"></span>
+            <div class="title-bar-icons">
+                <span class="icon-btn" id="about-btn">❓</span>
+                <span class="icon-btn" id="character-btn">👥</span>
+                <span class="icon-btn" id="settings-btn">⚙️</span>
+            </div>
+        </div>
+        <div class="content game-content">
+            <div class="status-bar-container">
+                <div id="energy-label">YOUR ENERGY</div>
+                <div id="energy-bar-outline"><div id="energy-bar-fill"></div></div>
+            </div>
+            <div id="scenario-image"></div>
+            <div id="scenario-text"></div>
+            <div id="options-container"></div>
+        </div>
+    </div>
+    
+    <div id="reality-warning-modal" class="modal hidden">
+        <div class="window">
+            <div class="title-bar"><span>Content Warning</span></div>
+            <div class="modal-content">
+                <h2 style="color: #FF4500;">⚠️ A Note Before You Begin</h2>
+                <p>The "Familiar Stranger" experience is a narrative simulation based on real experiences with workplace isolation and systemic exclusion.</p>
+                <p>It contains scenarios that may be triggering. Please proceed with care.</p>
+            </div>
+            <div class="modal-buttons">
+                <button id="warning-back-btn" class="option-btn">Go Back</button>
+                <button id="warning-proceed-btn" class="option-btn">I Understand, Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="about-modal" class="modal hidden">
+        <div class="window">
+            <div class="title-bar"><span>About This Project</span></div>
+            <div class="modal-content">
+                <h2>Dual Experience Simulator</h2>
+                   <p>This is a narrative game about navigating the subtle complexities of workplace isolation. Every choice consumes energy, and the goal is not to 'win', but to survive the day with your well-being intact.</p>
+                <p>Created for the <strong>Hacks4Access</strong> hackathon, this game features accessibility options like large text and a high-contrast mode. Because inclusion isn't just a theme, it's a feature.</p>
+            </div>
+            <div class="modal-buttons">
+                <button id="close-about-btn" class="option-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal hidden">
+        <div class="window">
+            <div class="title-bar"><span>Accessibility Settings</span></div>
+            <div class="modal-content">
+                <h2>Settings</h2>
+                <label><input type="checkbox" id="large-text-toggle"> Large Text Mode</label>
+                <br>
+                <label><input type="checkbox" id="high-contrast-toggle"> High Contrast Mode</label>
+            </div>
+             <div class="modal-buttons">
+                <button id="close-settings-btn" class="option-btn">Apply & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="character-modal" class="modal hidden">
+        <div class="window">
+           <div class="title-bar"><span>Character Dossier</span></div>
+           <div id="character-modal-content" class="modal-content">
+               <!-- Content injected by JS -->
+           </div>
+           <div class="modal-buttons">
+               <button id="close-character-btn" class="option-btn">Close</button>
+           </div>
+        </div>
+   </div>
+
+<script>
+// --- DOM Elements ---
+const startScreen = document.getElementById('start-screen');
+const gameWindow = document.getElementById('game-window');
+const startDreamBtn = document.getElementById('start-dream-btn');
+const startRealityBtn = document.getElementById('start-reality-btn');
+const gameTitle = document.getElementById('game-title');
+const energyLabel = document.getElementById('energy-label');
+const energyBarFill = document.getElementById('energy-bar-fill');
+const scenarioImage = document.getElementById('scenario-image');
+const scenarioText = document.getElementById('scenario-text');
+const optionsContainer = document.getElementById('options-container');
+
+// Modals & Buttons
+const realityWarningModal = document.getElementById('reality-warning-modal');
+const warningProceedBtn = document.getElementById('warning-proceed-btn');
+const warningBackBtn = document.getElementById('warning-back-btn');
+const aboutBtn = document.getElementById('about-btn');
+const settingsBtn = document.getElementById('settings-btn');
+const characterBtn = document.getElementById('character-btn');
+const aboutModal = document.getElementById('about-modal');
+const settingsModal = document.getElementById('settings-modal');
+const characterModal = document.getElementById('character-modal');
+const closeAboutBtn = document.getElementById('close-about-btn');
+const closeSettingsBtn = document.getElementById('close-settings-btn');
+const closeCharacterBtn = document.getElementById('close-character-btn');
+const largeTextToggle = document.getElementById('large-text-toggle');
+const highContrastToggle = document.getElementById('high-contrast-toggle');
+
+// --- Game State Variables ---
+let playerEnergy = 100;
+let gameData = {};
+let gameFlags = {};
+
+// --- CHARACTER DATA ---
+const characterData = {
+    'Sovereign Tier': [
+        { name: 'Mr. Saito', title: 'The Founder King (SEO Lead)', desc: 'The shadow king. His will is the ultimate law of the land, though he rarely appears. Your official, yet absent, trainer.' },
+        { name: 'Hina', title: 'The Heiress Queen (CEO)', desc: 'The regent queen. She inherited the company and is the social center of the court. Her approval dictates the social climate.' }
+    ],
+    'Noble Tier (Inner Circle)': [
+        { name: 'Kaito', title: 'The Prince Consort (Film Co-Head)', desc: 'Co-ruler and Hina\'s neighbor. His power is equal to the Queen\'s. A key decision-maker in the dual monarchy.'},
+        { name: 'Kenji', title: 'The Queen\'s Guard (Your Lead)', desc: 'Kaito\'s partner and your direct supervisor. Gatekeeper of tasks and information. Executes the will of the inner circle.' },
+        { name: 'Daiki', title: 'The Childhood Friend (Film Lead)', desc: 'Hina\'s former classmate. His loyalty is unquestioned, forming a stable pillar of the Queen\'s power.' }
+    ],
+    'Citizen Tier (Court Members)': [
+        { name: 'Yumi', title: 'The Protégé (Designer)', desc: 'A friend-of-a-friend of Hina. She is favored, receiving the best tasks and opportunities, bypassing formal structures.' },
+        { name: 'Ryo', title: 'The Insider (Editor)', desc: 'A friendly part-time editor. He operates within the system, occasionally revealing its secrets, like the existence of the "inner circle" group chat.' },
+        { name: 'Haru', title: 'The Court Jester (Editor)', desc: 'The team\'s mood-lifter. He may invite you to things out of social duty, but his influence is limited.' }
+    ]
+};
+
+function populateCharacterDossier() {
+    const contentEl = document.getElementById('character-modal-content');
+    let html = '<h2>Office Hierarchy</h2>';
+    for (const category in characterData) {
+        html += `<div class="dossier-category"><h3>${category}</h3>`;
+        characterData[category].forEach(char => {
+            html += `
+                <div>
+                    <strong>${char.name} - ${char.title}</strong>
+                    <p>${char.desc}</p>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    }
+    contentEl.innerHTML = html;
+}
+
+// --- EVENT POOLS FOR RANDOM ENCOUNTERS ---
+const morningEventsPool = [
+    { flag: 'emoticonTrial', scene: 'reality_emoticon_trial', chance: 0.5 },
+    { flag: 'eavesdropTrial', scene: 'reality_eavesdrop_trial', chance: 0.5 },
+    { flag: 'musicTrial', scene: 'reality_music_trial', chance: 0.4 }
+];
+
+const afternoonEventsPool = [
+    { flag: 'coffee', scene: 'reality_coffee_offer', chance: 0.4 },
+    { flag: 'systemErasure', scene: 'reality_system_erasure', chance: 0.3 },
+    { flag: 'weddingInvite', scene: 'reality_wedding_invite', chance: 0.3, year: 1 },
+    { flag: 'xmasYear1', scene: 'reality_xmas_year1', chance: 0.2, year: 1 },
+    { flag: 'xmasYear2_gift', scene: 'reality_xmas_year2_gift', chance: 0.3, year: 2 },
+    { flag: 'unexpectedMeeting', scene: 'reality_unexpected_meeting', chance: 0.4 },
+    { flag: 'bugReport', scene: 'reality_bug_report', chance: 0.5 }
+];
+
+// --- GAME EVENT DATA ---
+const gameModes = {
+    dream: {
+        title: 'Dream_Office.exe', energyLabel: 'YOUR POSITIVITY ✨',
+        scenes: { 
+            'start': { image: '🌸', text: 'Your first day at "Bloom Tech"! The office is bright and welcoming.', options: [ { text: 'Take a deep breath and enter.', nextScene: 'dream_welcome' } ] },
+            'dream_welcome': { image: '🤝', text: 'Hina, the CEO, greets you with a warm smile. "Welcome! We\'re so thrilled to have you. I\'ll introduce you to your mentor, Ryo."', energyGain: 5, options: [ { text: '"Thank you! I\'m excited to be here."', nextScene: 'dream_meet_mentor' } ] },
+            'dream_meet_mentor': { image: '🧑‍🏫', text: 'Ryo gives you a friendly wave. "Hey! I\'m here to get you settled. No stupid questions, okay? Let\'s start with a tour and set up your dev environment together."', energyGain: 10, options: [ { text: '"This is amazing, thank you Ryo!"', nextScene: 'dream_morning_task' } ] },
+            'dream_morning_task': { image: '💻', text: 'Ryo explains your first task: a small but real feature for the company website. "Take your time," he says, "and just ask if you get stuck."', options: [ { text: 'Start working on the task.', energyGain: 5, nextScene: 'dream_lunch' } ] },
+            'dream_lunch': { image: '🍱', text: 'At lunchtime, Haru announces, "Team lunch order! My treat for the newcomer!" Everyone actively includes you in the conversation.', energyGain: 15, options: [ { text: 'Feel included and valued.', nextScene: 'dream_glitch' } ] },
+            'dream_glitch': { image: '❓', text: 'As you smile, a reflection on your dark screen catches your eye. For a split second, you see a much lonelier office. You hear a phantom echo... "Who is she? Mr. Saito\'s problem..." The feeling vanishes.', options: [ { text: 'Shake it off. Just tired.', energyCost: 2, nextScene: 'dream_end_of_day' }, { text: '"Wait... what was that?"', nextScene: 'reality_wakeup', onChoose: () => { gameFlags.wokeUpFromDream = true; } } ] },
+            'dream_end_of_day': { image: '🌟', text: 'As you pack up, Hina stops by. "You had a great first day! We can already see you\'re going to be a wonderful addition to the team."', options: [{ text: 'End the day feeling fulfilled.', nextScene: 'dream_final_ending' }] },
+            'dream_final_ending': { image: '💖', text: 'You go home with more energy than you started with. This is a place where you can grow and thrive. Tomorrow feels full of possibility.', options: [{ text: 'Return to Main Menu', nextScene: 'reset' }] }
+        }
+    },
+    reality: {
+        title: 'Familiar_Stranger.exe', energyLabel: 'YOUR SOCIAL BATTERY 🔋',
+        scenes: {
+            'start': {
+                onLoad: () => {
+                    if (!gameFlags.firstDayDone) return { scene: 'reality_first_day' };
+                    const rand = Math.random();
+                    if (rand < 0.33) return { scene: 'reality_arrival_alone' };
+                    if (rand < 0.66) return { scene: 'reality_arrival_with_kenji' };
+                    return { scene: 'reality_arrival_full_office' };
+                }
+            },
+            'reality_wakeup': { image: '😵', text: 'The pastel colors fade to a dull grey. The gentle hum is replaced by the buzz of fluorescent lights. You look around. You\'re alone at your desk. It was just a daydream. This is reality.', energyCost: 15, options: [{ text: 'Face the afternoon.', nextScene: 'reality_afternoon_hub' }] },
+            'reality_first_day': { image: '❓', text: 'It\'s 8 AM on your first day. Kenji arrives, looking confused. "Uh, can I help you?" He makes a call. "Yeah, she\'s here... the new apprentice... Mr. Saito\'s problem, I guess." Hina gives you a laptop and a quick handshake tour. Then, silence.', onLoad: () => { gameFlags.firstDayDone = true; }, energyCost: 20, options: [{ text: 'Begin your tenure.', nextScene: 'reality_morning_hub' }] },
+            'reality_arrival_alone': { image: '🤫', text: 'You\'re the first one here. The office is quiet. A brief moment of peace.', energyGain: 5, options: [{ text: 'Settle in.', nextScene: 'reality_morning_hub' }] },
+            'reality_arrival_with_kenji': { image: '😐', text: 'You arrive at the same time as Kenji. You walk in together in an uncomfortable silence.', energyCost: 3, options: [{ text: 'Get to your desk.', nextScene: 'reality_morning_hub' }] },
+            'reality_arrival_full_office': { image: '🗣️', text: 'You arrive to a full office. Hina, Kaito, and Daiki are laughing loudly. You say "Morning," but your voice is lost in their chatter.', energyCost: 5, options: [{ text: 'Get to your desk.', nextScene: 'reality_morning_hub' }] },
+            'reality_morning_hub': { onLoad: () => triggerRandomEvent(morningEventsPool, 'reality_task_void') },
+            'reality_task_void': { image: '🖥️', text: 'Your task list is empty. Kenji is wearing headphones. The silence stretches.', options: [ { text: 'Ask Kenji for a task.', nextScene: 'reality_ask_kenji' }, { text: 'Work on your personal project.', energyGain: 5, nextScene: 'reality_lunch_hub' }, { text: 'Organize old files to look busy.', energyCost: 5, nextScene: 'reality_lunch_hub' }, ] },
+            'reality_ask_kenji': { image: '🤔', onLoad: () => { if (Math.random() < 0.5) return { text: 'He looks annoyed. "I\'ll find something." Hours later, he assigns you to check for broken links.', energyCost: 15 }; return { text: 'He points to an email. "Just wait for the signal on the KPI task." You are now officially in a holding pattern.', energyCost: 10 }; }, options: [ { text: '...', nextScene: 'reality_lunch_hub' } ] },
+            'reality_emoticon_trial': { image: '✉️', text: 'You send Kenji an email with "ay ay, captain!". He calls you over. "Is this how you communicate professionally? We\'re not that familiar."', onLoad: () => { gameFlags.emoticonTrial = true; }, energyCost: 15, options: [{ text: 'Apologize and adapt.', nextScene: 'reality_task_void' }] },
+            'reality_eavesdrop_trial': { image: '👂', text: 'Colleagues are chatting nearby. You pause to listen. Later, Hina tells you privately: "You can listen, but don\'t stop working."', onLoad: () => { gameFlags.eavesdropTrial = true; }, energyCost: 10, options: [{ text: 'Nod silently.', nextScene: 'reality_task_void' }] },
+            'reality_music_trial': { image: '🎵', text: 'Kenji asks if he can play music aloud. You agree. He asks what you like. "Anime songs? The Cranberries?" He plays "Zombie", then says "Rock and roll!" and turns it down.', onLoad: () => { gameFlags.musicTrial = true; }, energyGain: 5, options: [{text: 'It was a light-hearted moment.', nextScene: 'reality_task_void'}] },
+            'reality_lunch_hub': { 
+                image: '🍱', 
+                onLoad: () => {
+                    const year = Math.floor((gameFlags.dayCount || 0) / 5) + 1;
+                    if(year >= 3 && Math.random() < 0.33) {
+                        return { scene: 'reality_lunch_invite_year3' };
+                    }
+                    return {text: 'It\'s noon. You hear the core team discussing where to order lunch. They don\'t look your way.'};
+                },
+                options: [ { text: 'Wait to be invited.', nextScene: 'reality_lunch_wait' }, { text: 'Say "I\'d like to order too!"', nextScene: 'reality_lunch_ask' }, { text: 'Eat your apple and ignore them.', energyCost: 0, nextScene: 'reality_afternoon_hub' } ] },
+            'reality_lunch_wait': { image: '🚶‍♂️', text: 'You wait. They finalize the order and leave as a group. The office is suddenly quiet. They forgot you.', energyCost: 10, options: [{ text: '...', nextScene: 'reality_afternoon_hub' }] },
+            'reality_lunch_ask': { image: '💬', text: 'You speak up, but your voice isn\'t loud enough. They don\'t hear you over their own conversation and leave without you.', energyCost: 15, options: [{ text: '...', nextScene: 'reality_afternoon_hub' }] },
+            'reality_lunch_invite_year3': { image: '✨', text: 'After all this time, Haru from the video team turns to you. "We\'re going for lunch. Wanna come?"', options: [ {text: '"Yes! Thank you!"', energyGain: 15, nextScene: 'reality_afternoon_hub'}, {text: '"No thanks, I\'m good."', energyCost: 5, nextScene: 'reality_afternoon_hub'} ] },
+            'reality_afternoon_hub': { onLoad: () => triggerRandomEvent(afternoonEventsPool, 'reality_afternoon_task') },
+            'reality_afternoon_task': { image: '⏳', text: 'The afternoon drags on. You are still waiting for a task.', options: [ { text: 'Work on your personal project.', energyGain: 5, nextScene: 'reality_end_of_day' }, { text: 'Read tech articles.', energyGain: 2, nextScene: 'reality_end_of_day' }, { text: 'Stare into the void.', energyCost: 10, nextScene: 'reality_end_of_day' } ] },
+            'reality_coffee_offer': { image: '☕', text: 'In the kitchen, you see Daiki. "Hey, want a coffee?" he asks kindly. You mention you can\'t drink it, but you appreciate the offer.', onLoad: () => { gameFlags.coffee = true; }, energyGain: 10, options: [{text: 'It was a nice, small moment.', nextScene: 'reality_afternoon_task'}] },
+            'reality_system_erasure': { image: '🚫', text: 'A new time-tracking system is rolled out. Everyone is logging their hours. You check the system. Your name isn\'t on the list.', onLoad: () => { gameFlags.systemErasure = true; }, energyCost: 25, options: [ { text: 'You are an untracked ghost.', nextScene: 'reality_afternoon_task' } ] },
+            'reality_wedding_invite': { image: '💌', text: 'You find a wedding invitation from Daiki in your mail. You had no idea he was getting married; there was no office announcement.', onLoad: () => { gameFlags.weddingInvite = true; }, energyCost: 5, options: [ { text: 'You buy a card and leave it on his desk.', nextScene: 'reality_afternoon_task' } ] },
+            'reality_xmas_year1': { image: '🎄', text: 'It\'s the last Friday before Christmas. The office empties. Later, you get a call. "Hey, we\'re at the Christmas party, wanna come?" They forgot to invite you.', onLoad: () => { gameFlags.xmasYear1 = true; }, energyCost: 20, options: [ { text: 'Decline politely.', nextScene: 'reality_afternoon_task' } ] },
+            'reality_xmas_year2_gift': { image: '🎁', text: 'A week before the next Christmas party. You arrive first. There\'s a small gift from Ryo on everyone\'s desk... except yours.', onLoad: () => { gameFlags.xmasYear2_gift = true; }, energyCost: 30, options: [ { text: '...', nextScene: 'reality_xmas_year2_party' } ] },
+            'reality_xmas_year2_party': { image: '🍻', text: 'This year, you are invited to the Christmas party. You go, but stand silently as the group talks about shared memories you are not a part of.', energyCost: 25, options: [ { text: 'Endure it.', nextScene: 'reality_afternoon_task' } ] },
+            'reality_unexpected_meeting': { image: '👥', text: 'Kenji suddenly says: "Hey, five minutes, meeting, you should listen in." You have no idea what it\'s about.', onLoad: () => { gameFlags.unexpectedMeeting = true; }, energyCost: 20, options: [ { text: 'Sit in the meeting, trying to look engaged.', nextScene: 'reality_afternoon_task' } ] },
+            'reality_bug_report': { image: '🐞', text: 'You found a weird bug. Kenji is sitting right behind you.', onLoad: () => { gameFlags.bugReport = true; }, options: [ {text: 'Turn and ask him directly.', energyCost: 25, nextScene: 'reality_afternoon_task'}, {text: 'Spend an hour on Google first.', energyCost: 10, nextScene: 'reality_afternoon_task'} ]},
+            'reality_move_upstairs': { image: '📦', text: 'One day, Kenji mentions you\'re both moving upstairs. The reason is vague: "It\'s more comfortable up there." This is the start of Year 2.', onLoad: () => { gameFlags.movedUpstairs = true; }, energyCost: 10, options: [{text: 'Pack your things.', nextScene: 'reality_new_desk'}] },
+            'reality_new_desk': { image: '🌊', text: 'Your new desk has a nice view, but it\'s separated from the main group by a large server room. Beautiful, but isolated.', energyCost: 5, options: [{text: 'At least the view is nice.', nextScene: 'reality_afternoon_task'}] },
+            'reality_end_of_day': { image: '🕓', text: 'It\'s 4:01 PM. As you pack up, Hina stops by. "So, what did you accomplish today?"', options: [ { text: 'Detail the "useless" tasks.', energyCost: 10, nextScene: 'reality_final_ending' }, { text: 'Talk about your personal project.', energyCost: 20, nextScene: 'reality_final_ending' }, { text: 'Be vague: "Handled some tasks."', energyCost: 5, nextScene: 'reality_final_ending' } ] },
+            'reality_final_ending': { onLoad: () => { gameFlags.dayCount = (gameFlags.dayCount || 0) + 1; if (playerEnergy > 50) return { image: '🛡️', text: 'You go home with energy to spare. You protected yourself today. That is a victory.' }; if (playerEnergy > 0) return { image: '💔', text: 'You feel drained, a ghost in the machine. But you survived. Another day passed.' }; return { image: '💀', text: 'Energy depleted. System crash. It\'s okay to shut down. You tried your best.' }; }, options: [{ text: 'Start a New Day 🔄', nextScene: 'reset_day' }] }
+        }
+    }
+};
+
+// --- Core Game Logic ---
+function updateEnergy(cost = 0, gain = 0) {
+    playerEnergy = Math.max(0, Math.min(100, playerEnergy - cost + gain));
+    energyBarFill.style.width = playerEnergy + '%';
+    if (playerEnergy > 60) energyBarFill.style.backgroundColor = 'var(--energy-bar-fill)';
+    else if (playerEnergy > 30) energyBarFill.style.backgroundColor = '#FFFF00';
+    else energyBarFill.style.backgroundColor = '#FF0000';
+}
+
+function triggerRandomEvent(eventPool, defaultScene) {
+    let availableEvents = eventPool.filter(event => !gameFlags[event.flag]);
+    const year = Math.floor((gameFlags.dayCount || 0) / 5) + 1; // Simulate 5 days = 1 "year" for gameplay
+    
+    if (year === 1 && !gameFlags.movedUpstairs && (gameFlags.dayCount || 0) >= 4) {
+      availableEvents.push({flag: 'movedUpstairs', scene: 'reality_move_upstairs', chance: 1.0}); // Force move
+    }
+    
+    availableEvents = availableEvents.filter(event => !event.year || event.year === year);
+
+    for (const event of availableEvents) {
+        if (Math.random() < event.chance) {
+            return { scene: event.scene };
+        }
+    }
+    return { scene: defaultScene };
+}
+
+function showScene(sceneName) {
+    if (sceneName === 'reset_day') { return startDay(); } 
+    if (sceneName === 'reset') { return resetToTitleScreen(); }
+    if (sceneName === 'reality_wakeup' && gameFlags.wokeUpFromDream) { setupGame('reality'); }
+
+    let scene = gameData.scenes[sceneName];
+    if (!scene) { console.error(`Scene "${sceneName}" not found.`); return; }
+
+    if (scene.onLoad) {
+        const result = scene.onLoad();
+        if (result && result.scene) { return showScene(result.scene); }
+    }
+    
+    let dynamicResult = (typeof scene.onLoad === 'function') ? (scene.onLoad() || {}) : {};
+    updateEnergy(dynamicResult.energyCost || scene.energyCost, dynamicResult.energyGain || scene.energyGain);
+    
+    scenarioImage.textContent = dynamicResult.image || scene.image;
+    scenarioText.textContent = dynamicResult.text || scene.text;
+    
+    optionsContainer.innerHTML = '';
+    (scene.options || []).forEach(option => {
+        const button = document.createElement('button');
+        button.textContent = option.text;
+        button.classList.add('option-btn');
+        button.addEventListener('click', () => {
+            if (option.onChoose) option.onChoose();
+            updateEnergy(option.energyCost, option.energyGain);
+            showScene(option.nextScene);
+        });
+        optionsContainer.appendChild(button);
+    });
+    
+    if (playerEnergy <= 0 && sceneName !== 'reality_final_ending') {
+        setTimeout(() => showScene('reality_final_ending'), 1000);
+    }
+}
+
+function setupGame(mode) {
+    document.body.className = '';
+    loadSettings(); 
+    const modeData = gameModes[mode];
+    gameData = modeData;
+    if (mode === 'dream') document.body.classList.add('dreamy-mode');
+
+    gameTitle.textContent = modeData.title;
+    energyLabel.textContent = modeData.energyLabel;
+    
+    if (!gameFlags.wokeUpFromDream) { playerEnergy = 100; }
+    
+    updateEnergy();
+}
+
+function startNewGame(mode) {
+    gameFlags = {}; // COMPLETE RESET
+    gameWindow.classList.remove('hidden');
+    startScreen.classList.add('hidden');
+    setupGame(mode);
+    showScene('start');
+}
+
+function startDay() {
+    // This is for continuing the game, not resetting flags.
+    gameFlags.wokeUpFromDream = false; // Reset this specific flag for the day
+    setupGame('reality'); // Always continues in reality mode
+    showScene('start');
+}
+
+function resetToTitleScreen() {
+    gameWindow.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+    document.body.className = '';
+    loadSettings();
+}
+
+// --- Event Listeners & Modal Logic ---
+startDreamBtn.addEventListener('click', () => startNewGame('dream'));
+startRealityBtn.addEventListener('click', () => toggleModal(realityWarningModal, true));
+warningProceedBtn.addEventListener('click', () => { toggleModal(realityWarningModal, false); startNewGame('reality'); });
+warningBackBtn.addEventListener('click', () => toggleModal(realityWarningModal, false));
+
+settingsBtn.addEventListener('click', () => toggleModal(settingsModal, true));
+closeSettingsBtn.addEventListener('click', () => { applySettings(); toggleModal(settingsModal, false); });
+aboutBtn.addEventListener('click', () => toggleModal(aboutModal, true));
+closeAboutBtn.addEventListener('click', () => toggleModal(aboutModal, false));
+characterBtn.addEventListener('click', () => toggleModal(characterModal, true));
+closeCharacterBtn.addEventListener('click', () => toggleModal(characterModal, false));
+
+function toggleModal(modal, show) { modal.classList.toggle('hidden', !show); }
+function applySettings() {
+    document.body.classList.toggle('large-text', largeTextToggle.checked);
+    document.body.classList.toggle('high-contrast', highContrastToggle.checked);
+    localStorage.setItem('largeText', largeTextToggle.checked);
+    localStorage.setItem('highContrast', highContrastToggle.checked);
+}
+function loadSettings() {
+    largeTextToggle.checked = localStorage.getItem('largeText') === 'true';
+    highContrastToggle.checked = localStorage.getItem('highContrast') === 'true';
+    applySettings();
+}
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    populateCharacterDossier();
+});
+</script>
+</body>
+</html>
